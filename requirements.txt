@@ -1,6 +1,2 @@
-PyJWT
-pycryptodome
+Flask
 requests
-protobuf
-PyJWT
-python-telegram-bot==20.8
