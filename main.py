@@ -38,9 +38,9 @@ def send_request(password):
     resp = requests.post(url, data=payload, headers=headers, timeout=10)
     return {
         "password_used": password,
-        "signature": signature,
+        #"signature": signature,
         "response_status": resp.status_code,
-        "response": resp.text
+        #"response": resp.text
     }, resp.status_code
 
 @app.route("/register", methods=["GET"])
