@@ -1,4 +1,4 @@
-responseonseonse flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 import requests
 import hmac
 import hashlib
@@ -36,24 +36,31 @@ def send_request(password):
     }
 
     resp = requests.post(url, data=payload, headers=headers, timeout=10)
+
+    # Extract only uid
+    try:
+        data = resp.json()
+        uid = data.get("uid") if isinstance(data, dict) else None
+    except Exception:
+        uid = None
+
     return {
         "password_used": password,
-        #"signature": signature,
-        "response_status": resp.status_code,
-        "response": resp.text
-    }, resp.status_code
+        "uid": uid,
+        "response_status": resp.status_code
+    }
 
 @app.route("/register", methods=["GET"])
 def register():
     password = generate_custom_password()
-    return jsonify(*send_request(password))
+    return jsonify(send_request(password))
 
 @app.route("/custom", methods=["GET"])
 def custom():
     password = request.args.get("password")
     if not password:
         return jsonify({"error": "Provide password with ?password=YOURPASS"}), 400
-    return jsonify(*send_request(password))
+    return jsonify(send_request(password))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=1080, debug=False)
