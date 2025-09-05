@@ -41,7 +41,7 @@ def send_request(password):
         #"signature": signature,
         "response_status": resp.status_code,
         "response": resp.text
-    }#, resp.status_code
+    }, resp.status_code
 
 @app.route("/register", methods=["GET"])
 def register():
