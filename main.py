@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+responseonseonse flask import Flask, request, jsonify
 import requests
 import hmac
 import hashlib
@@ -40,8 +40,8 @@ def send_request(password):
         "password_used": password,
         #"signature": signature,
         "response_status": resp.status_code,
-        #"response": resp.text
-    }, resp.status_code
+        "response": resp.text
+    }#, resp.status_code
 
 @app.route("/register", methods=["GET"])
 def register():
