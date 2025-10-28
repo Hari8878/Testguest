@@ -36,6 +36,7 @@ HTML_PAGE = """
     <button onclick="sendOtp()">Send OTP</button>
     <input id="otp" placeholder="Enter OTP" style="display:none;">
     <button id="verifyBtn" onclick="verifyOtp()" style="display:none;">Verify & Bind</button>
+    <button id="cancelBtn" onclick="cancelBind()">Cancel Bind</button>
     <pre id="output"></pre>
   </div>
   <script>
@@ -78,6 +79,14 @@ HTML_PAGE = """
       out.textContent = '📤 Verifying OTP & Binding...';
       const res = await post('/verify_otp', {access_token, email, otp});
       showOutput(res, 'Verify + Bind');
+    }
+
+    async function cancelBind() {
+      const access_token = document.getElementById('access_token').value.trim();
+      const out = document.getElementById('output');
+      out.textContent = '📤 Cancelling Bind Request...';
+      const res = await post('/cancel_bind', {access_token});
+      showOutput(res, 'Cancel Bind');
     }
   </script>
 </body>
@@ -139,6 +148,18 @@ def verify_otp():
     })
 
     return jsonify(bind_resp)
+
+@app.route("/cancel_bind", methods=["POST"])
+def cancel_bind():
+    data = request.get_json()
+    access_token = data.get("access_token")
+
+    cancel_resp = post("https://ffmconnect.live.gop.garenanow.com/game/account_security/bind:cancel_request", {
+        "app_id": "100067",
+        "access_token": access_token
+    })
+
+    return jsonify(cancel_resp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
