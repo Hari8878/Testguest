@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 def fetch_hse_results(regno: str, dob: str) -> dict:
 
-    url = "https://tnresults.nic.in/rdtpex.asp"
+    url = "https://tnresults.nic.in/2026_HSCtnresults/2026_9994hsc.asp"
 
     payload = {
         "regno": regno,
