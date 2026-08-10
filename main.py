@@ -5,6 +5,14 @@ app = Flask(__name__)
 
 API_URL = "https://horizon.policyboss.com:5443/quote/pb_vehicle_info"
 
+
+@app.get("/")
+def home():
+    return jsonify({
+        "success": True,
+        "message": "Flask API is running"
+    })
+    
 @app.get("/Vehicle")
 def vehicle():
     reg_value = request.args.get("reg_value")
