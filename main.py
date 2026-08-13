@@ -3,47 +3,62 @@ import requests
 
 app = Flask(__name__)
 
-API_URL = "https://horizon.policyboss.com:5443/quote/pb_vehicle_info"
+@app.route("/")
+def home():
+    return jsonify({
+        "api": "PAN to Info API",
+        "usage": "/pan-info?pan=JCZPS4827P",
+        "example": "/pan-info?pan=JCZPS4827P"
+    })
 
-@app.get("/Vehicle")
-def vehicle():
-    reg_value = request.args.get("reg_value")
-    token_value = request.args.get("token_value")
+@app.route("/pan-info", methods=["GET"])
+def pan_info():
+    pan = request.args.get("pan", "").strip().upper()
 
-    if not reg_value or not token_value:
+    if not pan or len(pan) != 10:
         return jsonify({
-            "success": False,
-            "error": "Missing reg_value or token_value"
+            "error": "Valid 10-digit PAN required",
+            "example": "/pan-info?pan=JCZPS4827P"
         }), 400
 
-    
-    payload = {
-  "secret_key": "SECRET-HZ07QRWY-JIBT-XRMQ-ZP95-J0RWP3DYRACW",
-  "client_key": "CLIENT-CNTP6NYE-CU9N-DUZW-CSPI-SH1IS4DOVHB9",
-  "RegistrationNumber": "TN93F9915",
-  "product_id": 10,
-  "ss_id": "0",
-  "source": "PB-BETA-MOBILE",
-  "session_id": reg_value,
-  "g-recaptcha-response": token_value,
-  "captcha": token_value
-}
-
-    response = requests.post(
-        API_URL,
-        json=payload,
-        timeout=20
-    )
-
     try:
-        result = response.json()
-        return jsonify(result), response.status_code
-    except ValueError:
-        return jsonify({
-            "success": False,
-            "response": response.text
-        }), response.status_code
+        # Step 1: Token eduka
+        token_url = "https://turtlemintloans.com/api/minterprise/v1/token/issue"
+        token_headers = {
+            'User-Agent': "Mozilla/5.0 (Linux; Android 16; CPH2731 Build/BP2A.250605.015; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/143.0.7499.192 Mobile Safari/537.36",
+            'authorization': "Basic dHVydGxlZmluOnR1cnRsZWZpbjEyMw=="  # b64(turtlefin:turtlefin123)
+        }
+        
+        token_resp = requests.get(token_url, headers=token_headers, timeout=10)
+        token_resp.raise_for_status()
+        token_data = token_resp.json()
+        token = token_data["data"]["accessToken"]
 
+        # Step 2: PAN data eduka
+        pan_url = "https://turtlemintloans.com/api/minterprise/v1/products/personal-loan/leads/existing-lead-by-pan"
+        pan_headers = {
+            'authorization': f"Bearer {token}",
+            'x-provider': "signzy",
+            'User-Agent': token_headers['User-Agent']
+        }
+        pan_params = {'pan': pan}
+
+        resp = requests.get(pan_url, params=pan_params, headers=pan_headers, timeout=15)
+
+        if resp.status_code == 200:
+            return jsonify(resp.json())
+        else:
+            return jsonify({
+                "error": f"Upstream error {resp.status_code}",
+                "raw_response": resp.text[:500]
+            }), resp.status_code
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": "Request failed", "details": str(e)}), 500
+    except KeyError:
+        return jsonify({"error": "Token not found in response"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5010, debug=True)
